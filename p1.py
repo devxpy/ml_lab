@@ -4,8 +4,9 @@ import csv
 hypothesis = ["0"] * 6
 columns = 7
 
-with open("ENJOYSPORT.csv", "r") as csvfile:
+with open("p1.csv", "r") as csvfile:
     datareader = csv.reader(csvfile, delimiter=",")
+    next(datareader)  # skip header
 
     for train_data in datareader:
         print("t:", train_data)
