@@ -25,17 +25,17 @@ class NaiveBayes:
             cls_rows = df[df[target] == cls]
             self.p_classes[cls] = len(cls_rows) / len(df)
 
-            for feature in df.columns:
+            for feature in features:
                 for value, count in cls_rows[feature].value_counts().iteritems():
                     self.p_values[cls][feature][value] = count / len(cls_rows)
 
-    def classify(self, df):
+    def classify(self, x):
         max_p = 0
         pred = None
 
         for clas in classes:
             p = self.p_classes[clas]
-            for feature, value in df.iteritems():
+            for feature, value in x.iteritems():
                 try:
                     p *= self.p_values[clas][feature][value]
                 except KeyError:
@@ -48,11 +48,8 @@ class NaiveBayes:
         return pred
 
     def evaluate(self, df):
-        arr = []
-        for i in df.index:
-            k = self.classify(df.loc[i, features]) == df.loc[i, target]
-            arr.append(k)
-        return sum(arr) / len(df)
+        preds = [self.classify(row) for idx, row in df[features].iterrows()]
+        return sum(df[target] == preds) / len(df)
 
 
 test_df = df.sample(frac=0.3)
