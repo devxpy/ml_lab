@@ -27,9 +27,7 @@ def build(data, features):
     if len(classes) == 1:
         return Node(cls=classes[0])
 
-    gains = np.zeros(len(features) - 1)
-    for feature in range(len(gains)):
-        gains[feature] = gain_ratio(data, feature)
+    gains = [gain_ratio(data, feature) for feature in range(len(features) - 1)]
 
     best_feature = np.argmax(gains)
     node = Node(feature=features[best_feature])
