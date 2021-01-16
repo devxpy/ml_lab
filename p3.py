@@ -3,20 +3,63 @@ import math
 import csv
 
 
-def read_data(filename):
-    with open(filename, "r") as csvfile:
-        datareader = csv.reader(csvfile)
-        return list(next(datareader)), list(datareader)
-
-
 class Node:
-    def __init__(self, attribute):
-        self.attribute = attribute
+    def __init__(self, feature):
+        self.cls = None
+        self.feature = feature
         self.children = []
-        self.answer = ""
 
-    def __str__(self):
-        return self.attribute
+    def print_tree(self, level=0):
+        if self.cls:
+            print(" " * level + self.cls)
+            return
+
+        print(" " * level + self.feature)
+
+        for value, child in self.children:
+            print(" " * (level + 1) + value)
+            child.print_tree(level + 2)
+
+
+def build(data, features):
+    classes = np.unique(data[:, -1])
+    if len(classes) == 1:
+        node = Node("")
+        node.cls = classes[0]
+        return node
+
+    gains = np.zeros(len(features) - 1)
+    for feature in range(len(gains)):
+        gains[feature] = gain_ratio(data, feature)
+
+    best_feature = np.argmax(gains)
+    node = Node(features[best_feature])
+    features = np.delete(features, best_feature)
+
+    values, tables = subtables(data, best_feature, delete=True)
+    for value in values:
+        child = build(tables[value], features)
+        node.children.append((value, child))
+
+    return node
+
+
+def gain_ratio(data, feature):
+    values, tables = subtables(data, feature, delete=False)
+
+    entropies = np.zeros(len(values))
+    intrinsic = np.zeros(len(values))
+
+    for i in range(len(values)):
+        # fraction of examples that end up on this sub-node
+        frac = len(tables[values[i]]) / len(data)
+
+        entropies[i] = frac * entropy(tables[values[i]][:, -1])
+        intrinsic[i] = frac * math.log(frac, 2)
+
+    total_entropy = entropy(data[:, -1]) - np.sum(entropies)
+    iv = -np.sum(intrinsic)
+    return total_entropy / iv
 
 
 def entropy(S):
@@ -30,76 +73,25 @@ def entropy(S):
     return -sums
 
 
-def gain_ratio(data, col):
-    features, dict = subtables(data, col, delete=False)
+def subtables(data, feature, delete):
+    values = np.unique(data[:, feature])
+    tables = {}
 
-    entropies = np.zeros(len(features))
-    intrinsic = np.zeros(len(features))
+    for value in values:
+        tables[value] = data[data[:, feature] == value]
 
-    for i in range(len(features)):
-        # fraction of examples that end up on this sub-node
-        frac = len(dict[features[i]]) / len(data)
-
-        entropies[i] = frac * entropy(dict[features[i]][:, -1])
-        intrinsic[i] = frac * math.log(frac, 2)
-
-    total_entropy = entropy(data[:, -1]) - np.sum(entropies)
-    iv = -np.sum(intrinsic)
-    return total_entropy / iv
-
-
-def create_node(data, cols):
-    features = np.unique(data[:, -1])
-    if len(features) == 1:
-        node = Node("")
-        node.answer = features[0]
-        return node
-
-    gains = np.zeros(len(cols) - 1)
-    for i in range(len(gains)):
-        gains[i] = gain_ratio(data, i)
-
-    max_idx = np.argmax(gains)
-    node = Node(cols[max_idx])
-    cols = np.delete(cols, max_idx)
-
-    features, dict = subtables(data, max_idx, delete=True)
-    for feature in features:
-        child = create_node(dict[feature], cols)
-        node.children.append((feature, child))
-
-    return node
-
-
-def subtables(data, col, delete):
-    dict = {}
-    features = np.unique(data[:, col])
-    for value in features:
-        dict[value] = data[data[:, col] == value]
         if delete:
-            dict[value] = np.delete(dict[value], col, 1)
-    return features, dict
+            tables[value] = np.delete(tables[value], feature, 1)
+
+    return values, tables
 
 
-def print_tree(node, level):
-    if node.answer != "":
-        print(" " * level + node.answer)
-        return
-    print(" " * level + node.attribute)
-    for value, n in node.children:
-        print(" " * (level + 1) + value)
-        print_tree(n, level + 2)
+def read_data(filename):
+    with open(filename, "r") as csvfile:
+        datareader = csv.reader(csvfile)
+        return list(next(datareader)), np.array(list(datareader))
 
 
-def empty(size):
-    s = ""
-    for x in range(size):
-        s += " "
-    return s
-
-
-if __name__ == "__main__":
-    cols, traindata = read_data("p3.csv")
-    data = np.array(traindata)
-    node = create_node(data, cols)
-    print_tree(node, 0)
+columns, data = read_data("p3.csv")
+node = build(data, columns)
+node.print_tree()
