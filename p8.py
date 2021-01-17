@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
@@ -7,7 +8,7 @@ df = pd.read_csv("p8.csv")
 
 V1 = df["V1"].values
 V2 = df["V2"].values
-X = df.values
+X = np.array([V1, V2]).T
 print("X:", X)
 
 plt.figure()
@@ -19,7 +20,7 @@ kmeans_y = kmeans.fit_predict(X)
 print("K-means labels:", kmeans_y)
 
 centroids = kmeans.cluster_centers_
-print("K-means centroids:", centroids)
+print("K-means centroids:", centroids[:, :2])
 
 plt.figure()
 plt.scatter(V1, V2, c=kmeans_y)
