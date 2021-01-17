@@ -16,11 +16,11 @@ for i in range(0, len(D)):
     train_data = D[i]
 
     if train_data[-1] == "Yes":
-        for j in range(num_attrs - 1):
+        for j in range(num_attrs):
             if train_data[j] != S[j]:
                 S[j] = "?"
 
-        for j in range(num_attrs - 1):
+        for j in range(num_attrs):
             to_remove = []
             for k in range(1, len(G)):
                 if G[k][j] != S[j] and G[k][j] != "?":
@@ -29,7 +29,7 @@ for i in range(0, len(D)):
                 del G[k]
 
     elif train_data[-1] == "No":
-        for j in range(num_attrs - 1):
+        for j in range(num_attrs):
             if S[j] != train_data[j] and S[j] != "?":
                 g = ["?"] * num_attrs
                 g[j] = S[j]
