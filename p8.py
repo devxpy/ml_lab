@@ -20,7 +20,7 @@ kmeans_y = kmeans.fit_predict(X)
 print("K-means labels:", kmeans_y)
 
 centroids = kmeans.cluster_centers_
-print("K-means centroids:", centroids[:, :2])
+print("K-means centroids:", centroids)
 
 plt.figure()
 plt.scatter(V1, V2, c=kmeans_y)
