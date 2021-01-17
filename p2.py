@@ -30,17 +30,10 @@ for i in range(0, len(D)):
 
     elif train_data[-1] == "No":
         for j in range(num_attrs - 1):
-            if train_data[j] != S[j] and train_data[j] != "?":
+            if S[j] != train_data[j] and S[j] != "?":
                 g = ["?"] * num_attrs
                 g[j] = S[j]
                 G.append(g)
-
-    to_remove = []
-    for k in range(1, len(G)):
-        if G[k] == G_null[0]:
-            to_remove.append(k)
-    for k in to_remove:
-        del G[k]
 
     print("-" * 10)
     print(f"D{i + 1}: {train_data}")
