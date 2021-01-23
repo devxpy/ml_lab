@@ -12,7 +12,7 @@ print(f"G0: {G_null}")
 S = D[0][:num_attrs]
 G = []
 
-for i in range(0, len(D)):
+for i in range(len(D)):
     train_data = D[i]
 
     if train_data[-1] == "Yes":

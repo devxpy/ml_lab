@@ -21,7 +21,7 @@ class NaiveBayes:
         self.p_classes = dict()
 
     def train(self, df):
-        for cls in df[target].unique():
+        for cls in classes:
             cls_rows = df[df[target] == cls]
             self.p_classes[cls] = len(cls_rows) / len(df)
 

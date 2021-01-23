@@ -4,16 +4,11 @@ import csv
 
 
 class Node:
-    def __init__(self, cls=None, feature=None):
-        self.cls = cls
+    def __init__(self, feature=None):
         self.feature = feature
         self.children = []
 
     def print_tree(self, level=0):
-        if self.cls:
-            print(" " * level + self.cls)
-            return
-
         print(" " * level + self.feature)
 
         for value, child in self.children:
@@ -25,12 +20,12 @@ def build(data, features):
     classes = np.unique(data[:, -1])
 
     if len(classes) == 1:
-        return Node(cls=classes[0])
+        return Node(classes[0])
 
     gains = [gain_ratio(data, feature) for feature in range(len(features) - 1)]
 
     best_feature = np.argmax(gains)
-    node = Node(feature=features[best_feature])
+    node = Node(features[best_feature])
     features = np.delete(features, best_feature)
 
     values, tables = subtables(data, best_feature, delete=True)
