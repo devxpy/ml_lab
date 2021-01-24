@@ -1,89 +1,79 @@
-import numpy as np
-import math
 import csv
+
+import numpy as np
 
 
 class Node:
-    def __init__(self, feature=None):
-        self.feature = feature
+    def __init__(self, attr):
+        self.attr = attr
         self.children = []
 
-    def print_tree(self, level=0):
-        print(" " * level + self.feature)
+    def display(self, level=0):
+        print(" " * level + self.attr)
 
-        for value, child in self.children:
-            print(" " * (level + 1) + value)
-            child.print_tree(level + 2)
-
-
-def build(data, features):
-    classes = np.unique(data[:, -1])
-
-    if len(classes) == 1:
-        return Node(classes[0])
-
-    gains = [gain_ratio(data, feature) for feature in range(len(features) - 1)]
-
-    best_feature = np.argmax(gains)
-    node = Node(features[best_feature])
-    features = np.delete(features, best_feature)
-
-    values, tables = subtables(data, best_feature, delete=True)
-    for value in values:
-        child = build(tables[value], features)
-        node.children.append((value, child))
-
-    return node
+        for val, node in self.children:
+            print(" " * (level + 1) + val)
+            node.display(level + 2)
 
 
-def gain_ratio(data, feature):
-    values, tables = subtables(data, feature, delete=False)
+def subtables(D, fi, delete=False):
+    tables = {}
+    for xi in np.unique(D[:, fi]):
+        tables[xi] = D[D[:, fi] == xi]
+        if delete:
+            tables[xi] = np.delete(tables[xi], fi, axis=1)
+    return tables
 
-    entropies = np.zeros(len(values))
-    intrinsic = np.zeros(len(values))
 
-    for i in range(len(values)):
-        # fraction of examples that end up on this sub-node
-        frac = len(tables[values[i]]) / len(data)
+def gain(D, fi):
+    ig = iv = 0
 
-        entropies[i] = frac * entropy(tables[values[i]][:, -1])
-        intrinsic[i] = frac * math.log(frac, 2)
+    tables = subtables(D, fi)
+    for table in tables.values():
+        p = len(table) / len(D)
 
-    total_entropy = entropy(data[:, -1]) - np.sum(entropies)
-    iv = -np.sum(intrinsic)
-    return total_entropy / iv
+        ig += p * entropy(table[:, -1])
+        iv += p * np.log2(p)
+
+    ig = entropy(D[:, -1]) - ig
+    return ig / -iv
 
 
 def entropy(S):
-    items = np.unique(S)
-    if items.size == 1:
-        return 0
-    sums = 0
-    for x in items:
-        p = sum(S == x) / S.size
-        sums += p * math.log(p, 2)
-    return -sums
+    classes = np.unique(S)
+    E = 0
+    for xi in classes:
+        p = np.sum(S == xi) / len(S)
+        E += p * np.log2(p)
+    return -E
 
 
-def subtables(data, feature, delete):
-    values = np.unique(data[:, feature])
-    tables = {}
+def create_node(D, features):
+    classes = np.unique(D[:, -1])
+    if len(classes) == 1:
+        return Node(classes[0])
 
-    for value in values:
-        tables[value] = data[data[:, feature] == value]
+    gains = [gain(D, fi) for fi in range(len(features))]
+    fi = np.argmax(gains)
+    root = Node(features[fi])
 
-        if delete:
-            tables[value] = np.delete(tables[value], feature, 1)
+    features = np.delete(features, fi)
 
-    return values, tables
+    tables = subtables(D, fi, delete=True)
+    for val, table in tables.items():
+        child = create_node(table, features)
+        root.children.append((val, child))
 
-
-def read_data(filename):
-    with open(filename, "r") as csvfile:
-        datareader = csv.reader(csvfile)
-        return list(next(datareader)), np.array(list(datareader))
+    return root
 
 
-columns, data = read_data("p3.csv")
-node = build(data, columns)
-node.print_tree()
+def main():
+    with open("p3.csv") as f:
+        reader = csv.reader(f)
+        features = np.array(next(reader)[:-1])
+        node = create_node(np.array(list(reader)), features)
+        node.display()
+
+
+if __name__ == "__main__":
+    main()
