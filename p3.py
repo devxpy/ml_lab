@@ -40,9 +40,8 @@ def gain(D, fi):
 
 
 def entropy(S):
-    classes = np.unique(S)
     E = 0
-    for xi in classes:
+    for xi in np.unique(S):
         p = np.sum(S == xi) / len(S)
         E += p * np.log2(p)
     return -E
