@@ -17,7 +17,7 @@ with open("p1.csv", "r") as csvfile:
                     pass
                 elif hypothesis[y] == "0":
                     hypothesis[y] = train_data[y]
-                elif hypothesis[y] != "0":
+                else:
                     hypothesis[y] = "?"
 
         print("h:", hypothesis)

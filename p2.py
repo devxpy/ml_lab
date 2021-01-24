@@ -1,41 +1,41 @@
 import csv
 
-with open("p2.csv", "r") as csvFile:
-    D = list(csv.reader(csvFile))
-num_attrs = len(D[0]) - 1
+with open("p2.csv", "r") as f:
+    reader = csv.reader(f)
+    rows = list(reader)
 
-S = ["0"] * num_attrs
-G_null = [["?"] * num_attrs]
-print(f"S0: {S}")
-print(f"G0: {G_null}")
-
-S = D[0][:num_attrs]
+S = rows[0][:-1]
+nfeatures = len(S)
+G_null = nfeatures * ["?"]
 G = []
 
-for i in range(len(D)):
-    train_data = D[i]
+print("S0", S)
+print("G0", G_null)
+print("---")
 
-    if train_data[-1] == "Yes":
-        for j in range(num_attrs):
-            if train_data[j] != S[j]:
-                S[j] = "?"
+for r, row in enumerate(rows):
+    if row[nfeatures] == "Yes":
+        for i in range(nfeatures):
+            if S[i] != row[i]:
+                S[i] = "?"
 
-        for j in range(num_attrs):
+        for i in range(nfeatures):
             to_remove = []
-            for k in range(1, len(G)):
-                if G[k][j] != S[j] and G[k][j] != "?":
-                    to_remove.append(k)
-            for k in to_remove:
-                del G[k]
+            for j, g in enumerate(G):
+                if g[i] != "?" and S[i] != g[i]:
+                    to_remove.append(j)
+            for j in to_remove:
+                del G[j]
 
-    elif train_data[-1] == "No":
-        for j in range(num_attrs):
-            if S[j] != train_data[j] and S[j] != "?":
-                g = ["?"] * num_attrs
-                g[j] = S[j]
+    elif row[nfeatures] == "No":
+        for i in range(nfeatures):
+            if S[i] != "?" and S[i] != row[i]:
+                g = ["?"] * nfeatures
+                g[i] = S[i]
                 G.append(g)
 
-    print("-" * 10)
-    print(f"D{i + 1}: {train_data}")
-    print(f"S{i + 1}: {S}")
-    print(f"G{i + 1}: {G_null if not G else G}")
+    print(f"D{r + 1}", row)
+    print("---")
+    print(f"S{r + 1}", S)
+    print(f"G{r + 1}", G if G else G_null)
+    print("---")
