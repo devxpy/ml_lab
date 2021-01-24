@@ -3,6 +3,14 @@ import csv
 import numpy as np
 
 
+def main():
+    with open("p3.csv") as f:
+        reader = csv.reader(f)
+        features = np.array(next(reader)[:-1])
+        node = create_node(np.array(list(reader)), features)
+        node.display()
+
+
 class Node:
     def __init__(self, attr):
         self.attr = attr
@@ -14,6 +22,25 @@ class Node:
         for val, node in self.children:
             print(" " * (level + 1) + val)
             node.display(level + 2)
+
+
+def create_node(D, features):
+    classes = np.unique(D[:, -1])
+    if len(classes) == 1:
+        return Node(classes[0])
+
+    gains = [gain(D, fi) for fi in range(len(features))]
+    fi = np.argmax(gains)
+    root = Node(features[fi])
+
+    features = np.delete(features, fi)
+
+    tables = subtables(D, fi, delete=True)
+    for val, table in tables.items():
+        child = create_node(table, features)
+        root.children.append((val, child))
+
+    return root
 
 
 def subtables(D, fi, delete=False):
@@ -45,33 +72,6 @@ def entropy(S):
         p = np.sum(S == xi) / len(S)
         E += p * np.log2(p)
     return -E
-
-
-def create_node(D, features):
-    classes = np.unique(D[:, -1])
-    if len(classes) == 1:
-        return Node(classes[0])
-
-    gains = [gain(D, fi) for fi in range(len(features))]
-    fi = np.argmax(gains)
-    root = Node(features[fi])
-
-    features = np.delete(features, fi)
-
-    tables = subtables(D, fi, delete=True)
-    for val, table in tables.items():
-        child = create_node(table, features)
-        root.children.append((val, child))
-
-    return root
-
-
-def main():
-    with open("p3.csv") as f:
-        reader = csv.reader(f)
-        features = np.array(next(reader)[:-1])
-        node = create_node(np.array(list(reader)), features)
-        node.display()
 
 
 if __name__ == "__main__":
